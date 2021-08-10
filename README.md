@@ -20,7 +20,7 @@ To run any of the materials locally on your own machine, you will need the follo
   + [`ragg`](https://ragg.r-lib.org/)
   + [`magick`](https://docs.ropensci.org/magick/)
 
-You can install all required R packages at once by running the following code in the R command pane:
+You can install all required R packages at once by running the following code in R/Rstudio:
 
 ```{r install, eval=FALSE, echo=TRUE}
 # Package names
