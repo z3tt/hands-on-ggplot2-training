@@ -1,0 +1,25 @@
+---
+title: "Segment 2: Build Plots Layer by Layer"
+output:
+  distill::distill_article:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
+                      fig.width = 10, fig.height = 6, fig.retina = 2)
+```
+
+---
+
+## Session Info
+
+<details><summary>Expand for details</summary>
+
+```{r sessionInfo, echo = F}
+Sys.time()
+git2r::repository()
+sessionInfo()
+```
+
+</details>

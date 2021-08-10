@@ -1,0 +1,391 @@
+---
+title: "Segment 1: The Basics of ggplot2"
+output:
+  distill::distill_article:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
+                      fig.width = 10, fig.height = 6, fig.retina = 2)
+```
+
+### The ggplot2 Package
+
+> ggplot2 is a system for declaratively creating graphics,<br>based on "The Grammar of Graphics" (Wilkinson, 2005).
+> You provide the data, tell ggplot2 how to map variables to aesthetics, what graphical primitives to use, and it takes care of the details.
+
+### Advantages of ggplot2
+
+* consistent underlying grammar of graphics (Wilkinson, 2005)
+* very flexible, layered plot specification 
+* theme system for polishing plot appearance
+* active and helpful community
+
+
+## The Setup
+
+### The Package
+
+`ggplot2` is a **data visualization package** for the programming language `R` created by Hadley Wickham.
+
+It should be already installed on your system (if not run the first line in the following chunk). The functionality of the package can be loaded by calling `library()` as for any other package:
+
+```{r ggplot-package, eval=FALSE}
+#install.packages("ggplot2")
+library(ggplot2)
+```
+
+`ggplot2` is part of the [`tidyverse` package collection](https://www.tidyverse.org/). Thus, you can also load `tidyverse` without running `library(ggplot2)`:
+
+```{r tidyverse-package}
+#install.packages("tidyverse")
+library(tidyverse)
+```
+
+
+## The Data Set
+
+We use **cryptocurrency financial data**, pulled from [CoinMarketCap.com](https://www.kaggle.com/philmohun/cryptocurrency-financial-data).
+For our purposes, we limit the data to the period 08/2017–12/2019 and the top 4 cryptocurrencies.
+
+I have already prepared the data. If you want to know how, you can have a look [here]().
+
+### Import the Data
+
+Using the `read_csv()` function form the `{readr}` package, we can read the data directly from the web:
+
+```{r data-readr}
+url <- "https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/data/crypto_cleaned.csv"
+
+data <- readr::read_csv(url)
+
+data
+```
+
+Of course, one can import local files as well:
+
+```{r data-readr-local}
+data_local <- readr::read_csv("data/crypto_cleaned.csv")
+
+data_local
+```
+
+This assumes that you have placed the file in a folder called `data` in your working directory.  
+You can specify this directory via `setwd()` or, and preferably, use R projects.
+
+
+#### Short Explanation of ::
+
+The so–called **namespace** allows to access functions from a package directly without loading it first.
+
+`packagename::function(argument)`
+
+Furthermore, it helps readers to understand from which package a function is imported from.
+
+
+
+## The Grammar of Graphics
+
+### The Structure of ggplot2
+
+![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/dummy/slides/img/structure-table.png)
+
+
+### Data: ggplot(data)
+
+We need to specify the data in the `ggplot()` call:
+
+```{r structure-data}
+ggplot(data = data)
+```
+
+There is only an empty panel because `ggplot2` doesn't know **what** of the data it should plot.
+
+### Aesthetics: aes()
+
+We need to specify two variables we want to plot as positional `aes`thetics:
+
+```{r structure-aes}
+ggplot(data = data, mapping = aes(x = date, y = close))
+```
+
+There is only an empty panel because `ggplot2` doesn't know **how** it should plot the data.
+
+Thanks to implicit matching of arguments in `ggplot()` and `aes()`, we can also write:
+
+```{r structure-aes-implicit}
+ggplot(data, aes(date, close))
+```
+
+
+### Layers: geom_\*() and stat_*()
+
+By adding one or multiple layers we can tell `ggplot2` *how* to represent the data.
+There are lots of build-in geometric elements (`geom's`) and statistical transformations (`stat's`):
+
+![Adapted from ggplot2.tidyverse.org/reference](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/dummy/slides/img/ggplot-layers.png)
+
+We can tell `ggplot2` to represent the data for example as a **scatter plot**:
+
+```{r structure-geom-point}
+ggplot(data, aes(date, close)) +
+  geom_point()
+```
+
+... or as a **line plot** to visualize the data as time series:
+
+```{r structure-geom-line}
+ggplot(data, aes(date, close)) +
+  geom_line()
+```
+
+### Aesthetics: aes() (again)
+
+Aesthetics do not only refer to x and y positions, but also groupings, colors, fills, shapes etc.
+
+```{r structure-aes-line-groups}
+ggplot(data = data, mapping = aes(x = date, y = close, group = currency)) +
+  geom_line()
+```
+
+```{r structure-aes-line-colors}
+ggplot(data = data, mapping = aes(x = date, y = close, color = currency)) +
+  geom_line()
+```
+
+### Layers: geom_\*() and stat_*() (repeated)
+
+The exciting thing about layers is that you can combine several `geom_*()` and `stat_*()` calls:
+
+```{r structure-geom-point-smooth}
+ggplot(data, aes(date, close, color = currency)) +
+  stat_smooth() +
+  geom_point()
+```
+
+... and aesthetics can be applied either **globally**:
+
+```{r structure-geom-point-smooth-aes-global}
+ggplot(data, aes(date, close, color = currency, shape = currency)) +
+  stat_smooth() +
+  geom_point()
+```
+
+... or for each layer **individually**:
+
+```{r structure-geom-point-smooth-aes-individual}
+ggplot(data, aes(date, close)) +
+  stat_smooth(aes(color = currency)) +
+  geom_point(aes(shape = currency))
+```
+
+---
+
+## Exercise
+
+* Import the data set on Chicago weather data: https://raw.githubusercontent.com/z3tt/ggplot-courses/master/data/chicago-nmmaps.csv
+  
+* Inspect the data.
+
+* Create a scatter plot of temperature (`temp`) versus day (`date`).
+
+* Color the points by season (`season`).
+
+* Color the points by year (`year`).
+  + What's the problem? How could you fix it?
+
+* **Bonus:** Turn the scatter plot, colored by season, into a line plot.
+  + What's the problem? How could you fix it?
+
+---
+
+
+## The Grammar of Graphics (continued)
+
+### Scales: scales_*()
+
+Scales are directly connected to aesthetics:
+
+```{r structure-scales}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  stat_smooth() +
+  geom_point() +
+  scale_x_date() + 
+  scale_y_continuous() + 
+  scale_color_discrete()
+```
+
+```{r structure-scales-adj}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  stat_smooth() +
+  geom_point() +
+  scale_x_date(
+    expand = c(0, 0),
+    date_breaks = "4 months", 
+    date_labels = "%m/%y",
+    name = NULL
+  ) +
+  scale_y_continuous(
+    labels = scales::dollar_format(),
+    sec.axis = dup_axis(name = NULL),
+    name = "Closing Price"
+  ) + 
+  scale_color_discrete(
+    guide = "none"
+  )
+```
+
+### Coordinate Systems: coord_*()
+
+The coordinate system maps the two position to a 2d position on the plot:
+
+```{r structure-coord}
+ggplot(data, aes(x = date, y = close, 
+                 color = currency)) +
+  stat_smooth() +
+  geom_point() +
+  scale_x_date() + 
+  scale_y_continuous() + 
+  scale_color_discrete() +
+  coord_cartesian()
+```
+
+```{r structure-coord-polar}
+ggplot(data, aes(x = date, y = close, 
+                 color = currency)) +
+  stat_smooth() +
+  geom_point() +
+  scale_x_date() + 
+  scale_y_continuous() + 
+  scale_color_discrete() +
+  coord_polar()
+```
+
+Changing the limits on the coordinate system allows to zoom in:
+
+```{r structure-coord-zoom}
+ggplot(data, aes(x = date, y = close, 
+                 color = currency)) +
+  stat_smooth() +
+  geom_point() +
+  scale_x_date() + 
+  scale_y_continuous() + 
+  scale_color_discrete() +
+  coord_cartesian(
+    xlim = c(as.Date("2018-11-01"),
+             as.Date("2019-11-01")),
+    ylim = c(NA, 100)
+  )
+```
+
+-> Facets, Themes, and Annotations will follow later!
+
+
+
+---
+
+## APPENDIX
+
+### Import the Data
+
+#### Base R
+
+The base R function `read.csv()` works in the same way as `readr::read_csv()`:
+
+```{r data-base}
+data2 <- read.csv(url)
+
+head(data2)
+```
+
+... and we can turn it into a **tibble** afterwards:
+
+```{r data-base-tbl}
+data2 <- tibble::as_tibble(data2)
+
+data2
+```
+
+However, note that by default the date column is runed into type `character`.
+
+
+#### The {rio} Package
+
+The `import()` function from the `{rio}` package allows to load all kind of data formats:
+
+```{r data-rio-url}
+#install.packages("rio")
+
+data3 <- rio::import(url)
+
+head(data3)
+```
+
+... and we can turn it into a **tibble** afterwards:
+
+```{r data-rio-tbl}
+data3 <- tibble::as_tibble(data3)
+
+data3
+```
+
+You could also load, for example, Excel files with the same function:
+
+```{r data-rio-xlsx}
+data_xlsx <- rio::import( "https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/data/crypto_cleaned.xlsx")
+
+head(data_xlsx)
+```
+
+We can remove the first column by using the `select()` function from the `{dplyr}` package:
+
+```{r data-xlsx-select}
+data_xlsx <- dplyr::select(data_xlsx, -1)
+#data_xlsx <- dplyr::select(data_xlsx, currency:yday)
+
+data_xlsx
+```
+
+... and turn it into a **tibble** afterwards:
+
+```{r data-xlsx-tibble}
+data_xlsx <- tibble::as_tibble(data_xlsx)
+
+data_xlsx
+```
+
+Of course, one can load local files as well. Preferably with the help of the `{here}` package and R projects:
+
+```{r data-readr-local-here}
+here::here()
+
+data_local <- readr::read_csv(here::here("data", "crypto_cleaned.csv"))
+
+data_local
+```
+
+---
+
+### Aesthetics: aes()
+
+Some prefer to place the `aes()` outside the `ggplot()` call:
+
+```{r structure-aes-outside}
+ggplot(data) +
+  aes(x = date, y = close)
+```
+
+---
+
+## Session Info
+
+<details><summary>Expand for details</summary>
+
+```{r sessionInfo, echo = F}
+Sys.time()
+git2r::repository()
+sessionInfo()
+```
+
+</details>
