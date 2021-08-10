@@ -1,1 +1,1 @@
-# hands-on-ggplot2-workshop
+# Material for the "Hands–On Data Visualization with ggplot2" Training
