@@ -1,6 +1,6 @@
 # “Hands–On Data Visualization with ggplot2”
 
-### Material for the Material for the Pearson Live Training Session for O’Reilly
+### Material for the Pearson Live Training Session for O’Reilly (Sep 3, 2021)
 
 To get a copy of all the material, clone this repository to a directory of your choice.  
 If you are not familiar how to clone a repository, have a look [here](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository) or download and unpack [this zip folder]().  
