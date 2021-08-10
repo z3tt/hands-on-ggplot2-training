@@ -28,8 +28,8 @@ packages <- c("tidyverse", "ggrepel", "ggtext", "patchwork", "ragg", "magick")
 install.packages(packages)
 ```
 
-To run the code, open up Rstudio and copy–paste the code in **console windonw** and hit enter. Several messages should pop up. Scan these messages that are returned for errors and troubleshoot them if necessary. Warnings and other informational messages can be ignored.
+To run the code, open up Rstudio. Copy–paste the code in the **console pane** and hit enter. Several messages should pop up. Scan these messages that are returned for errors and troubleshoot them if necessary. Warnings and other informational messages can be ignored.
 
 #### Starting with the Training
 
-Double-click on the `hands-on-ggplot2.Rproj` file. Rstudio opens up with the working directory set to the same folder. Now, you can open any script in the files pane—we start with `01-grammar.Rmd`.
+Double-click on the `hands-on-ggplot2.Rproj` file. Rstudio opens up with the working directory set to the same folder (where the Rproj file is placed). Now, you can open any script from the files pane—we start with `01-grammar.Rmd`.
