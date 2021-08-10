@@ -7,6 +7,8 @@ If you are not familiar how to clone a repository, have a look [here](https://do
   
 To run any of the materials locally on your own machine, you will need the following:
 
+#### Installation
+
 - A recent version of **R** (download from [here](https://cloud.r-project.org/)) 
 - A recent version of **RStudio**, (download from [here](https://rstudio.com/products/rstudio/download/#download))
 - The following R packages: 
@@ -18,7 +20,7 @@ To run any of the materials locally on your own machine, you will need the follo
   + [`ragg`](https://ragg.r-lib.org/)
   + [`magick`](https://docs.ropensci.org/magick/)
 
-You can install all required R packages at once by running the following code in the R command line:
+You can install all required R packages at once by running the following code in the R command pane:
 
 ```{r install, eval=FALSE, echo=TRUE}
 # Package names
@@ -27,3 +29,7 @@ install.packages(packages)
 ```
 
 To run the code, open up Rstudio and copy–paste the code in **console windonw** and hit enter. Several messages should pop up. Scan these messages that are returned for errors and troubleshoot them if necessary. Warnings and other informational messages can be ignored.
+
+#### Starting with the Training
+
+Double-click on the `hands-on-ggplot2.Rproj` file. Rstudio opens up with the working directory set to the same folder. Now, you can open any script in the files pane—we start with `01-grammar.Rmd`.
