@@ -2,8 +2,9 @@
 
 ### Material for the Material for the Pearson Live Training Session for O’Reilly
 
-To get a copy of all the material, clone this repository to a directory of your choice. If you are not familiar how to clone a repository, have a look [here](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository) or download and unpack [this zip folder]().
-
+To get a copy of all the material, clone this repository to a directory of your choice.  
+If you are not familiar how to clone a repository, have a look [here](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository) or download and unpack [this zip folder]().  
+  
 To run any of the materials locally on your own machine, you will need the following:
 
 - A recent version of **R** (download from [here](https://cloud.r-project.org/)) 
