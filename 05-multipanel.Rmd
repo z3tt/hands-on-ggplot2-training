@@ -1,5 +1,9 @@
 ---
-title: "Segment 5: Create Multi-Panel Figures"
+title: "Segment 5: Create multipanel Figures"
+description: "Part 3 of the Pearson Live Training Session “Hands–On Data Visualization with ggplot2” for O’Reilly"
+author:
+  - name: Cédric Scherer
+    url: https://cedricscherer.com
 output:
   distill::distill_article:
     toc: true
@@ -7,8 +11,336 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
-                      fig.width = 10, fig.height = 6, fig.retina = 2)
+                      fig.width = 10, fig.height = 6, fig.retina = 2,
+                      dev = "ragg_png", res = 1000)
 ```
+
+```{r preparation}
+library(tidyverse)
+theme_set(theme_light(base_size = 18))
+data <- readr::read_csv("https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/data/crypto_cleaned.csv")
+```
+
+## Creating Small Multiples with `facet_*()`
+
+Faceting can be used to visualize data as small multiples, each showing a different subset of the data. Small multiples are a powerful tool for exploratory data analysis to avoid overplotting, compare many groups, and highlight differences.
+
+![Adapted from "ggplot2: Elegant Graphics for Data Analysis" by Hadley Wickham](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/position-facets.png)
+
+
+The well-known plot we are going to use for our small multiples, saved as `g`:
+
+```{r facet-no}
+g <- 
+  ggplot(data, aes(date, close)) +
+    geom_line(
+      aes(color = currency),
+      size = 1
+    ) +
+    scale_x_date(
+      date_labels = "%m/%y",
+      expand = c(0, 0)
+    ) +
+    scale_y_continuous(
+      labels = scales::dollar_format()
+    ) +
+    scale_color_brewer(
+      palette = "Set1",
+      guide = "none"
+    )
+
+g
+```
+
+### `facet_wrap()`
+
+`facet_wrap()` splits the data into small multiples based on **one grouping variable**:
+
+```{r facet-wrap-year}
+g +
+  facet_wrap(vars(year))
+```
+
+```{r facet-wrap-currency}
+g +
+  facet_wrap(vars(currency))
+```
+
+```{r facet-wrap-currency-2}
+g +
+  facet_wrap(~ currency)
+```
+
+```{r facet-wrap-scales-free}
+g +
+  facet_wrap(
+    vars(currency),
+    scales = "free"
+  )
+```
+
+```{r facet-wrap-scales-free-y}
+g +
+  facet_wrap(
+    vars(currency),
+    scales = "free_y"
+  )
+```
+
+```{r facet-wrap-nrow}
+g +
+  facet_wrap(
+    vars(currency),
+    nrow = 1
+  )
+```
+
+```{r facet-wrap-ncol}
+g +
+  facet_wrap(
+    vars(currency),
+    ncol = 1
+  )
+```
+
+### `facet_grid()`
+
+`facet_grid()` spans a grid of each combination of **two grouping variables**:
+
+```{r facet-grid}
+g +
+  facet_grid(
+    cols = vars(currency),
+    rows = vars(year)
+  )
+```
+
+```{r facet-grid-2}
+g +
+  facet_grid(
+    year ~ currency
+  )
+```
+
+```{r facet-grid-2-inv}
+g +
+  facet_grid(
+    currency ~ year
+  )
+```
+
+```{r facet-grid-inv-scales}
+g +
+  facet_grid(
+    currency ~ year,
+    scales = "free"
+  )
+```
+
+```{r facet-grid-inv-scales-y}
+g +
+  facet_grid(
+    currency ~ year,
+    scales = "free_y"
+  )
+```
+
+---
+
+## Exercise 1:
+
+* A famous statistical data set is the [“Datasaurus Dozen”](http://www.thefunctionalart.com/2016/08/download-datasaurus-never-trust-summary.html), which is based on [“Anscome's Quartet”](https://en.wikipedia.org/wiki/Anscombe%27s_quartet).<br><br>Import the according data into R and inspect it: `datasaurus.csv`
+* Visualize all 12 sets as small multiples of scatter plots.
+* Also, add to each facet a linear fitting in the back.
+* Use a built-in theme and add a title and explanation of the visual.
+
+---
+
+## Create Plot Compositions with the `patchwork` Package
+
+![Illustration by Allison Horst](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/ah_patchwork.jpg)
+
+Build up your multipanel plot sequentially using **The Composer of Plots**:
+
+```{r patchwork-basic-plots}
+(time <- ggplot(data, aes(date, close)) +
+  geom_line(aes(color = currency)) +
+  scale_color_brewer(palette = "Set1",
+                     guide = "none"))
+
+(box <- ggplot(data, aes(currency, close)) +
+  geom_boxplot(aes(color = currency)) +
+  scale_color_brewer(palette = "Set1",
+                     guide = "none"))
+```
+
+```{r patchwork-plots-composed}
+#install.packages("patchwork")
+library(patchwork)
+
+time + box
+```
+
+```{r patchwork-plots-divided}
+time / box
+```
+
+With the help of `plot_layout()` you can adjust widths and/or heights:
+
+```{r patchwork-widths}
+time + box + 
+  plot_layout(widths = c(2, 1))
+```
+
+The `plot_spacer()` function allows to add empty panels:
+
+```{r patchwork-spacer, fig.width=14, fig.height=5.4}
+time + plot_spacer() + box + 
+  plot_layout(widths = c(2, .5, 1))
+```
+
+Let's add another plot — with parentheses you can nest plots:
+
+```{r patchwork-adv}
+scatter <-
+  ggplot(data,
+         aes(close, open)) +
+  geom_point(
+    aes(color = currency),
+    size = 1.5,
+    alpha = .25
+  ) +
+  scale_color_brewer(
+    palette = "Set1",
+    guide = "none"
+  )
+
+time / (box + scatter) +
+  plot_layout(heights = c(1, 2))
+```
+
+Note that even with legends the plot panels align:
+
+```{r patchwork-adv-legend}
+scatter_guide <-
+  ggplot(data,
+         aes(close, open)) +
+  geom_point(
+    aes(color = currency),
+    size = 1.5,
+    alpha = .25
+  ) +
+  scale_color_brewer(
+    palette = "Set1",
+    #guide = "none"
+  )
+
+time / (box + scatter_guide) +
+  plot_layout(heights = c(1, 2))
+```
+
+The argument `guides = "collect"` groups legends and places them relative to the composition:
+
+```{r patchwork-adv-legend-collect}
+time / (box + scatter_guide) +
+  plot_layout(
+    heights = c(1, 2),
+    guides = "collect"
+  )
+```
+
+Furthermore, `plot_annotation()` allows to add labels on the compositional level:
+
+```{r patchwork-annotate}
+time / (box + scatter_guide) +
+  plot_layout(
+    heights = c(1, 2),
+    guides = "collect"
+  ) +
+  plot_annotation(
+    title = "Performance of Top 4 Cryptocurrencies"
+  )
+```
+
+`plot_annotation()` also comes with the functionality to tag panels in one step:
+
+```{r patchwork-annotate-2}
+time / (box + scatter_guide) +
+  plot_layout(
+    heights = c(1, 2),
+    guides = "collect"
+  ) +
+  plot_annotation(
+    title = "Performance of Top 4 Cryptocurrencies",
+    tag_levels = "A",
+    tag_suffix = ")"
+  )
+```
+
+```{r patchwork-annotate-3}
+time / (box + scatter_guide) +
+  plot_layout(
+    heights = c(1, 2),
+    guides = "collect"
+  ) +
+  plot_annotation(
+    title = "Performance of Top 4 Cryptocurrencies",
+    tag_levels = "i",
+    tag_prefix = "(",
+    tag_suffix = ")"
+  )
+```
+
+`{patchwork}` also allows to place plots as insets:
+
+```{r patchwork-inset}
+box <- box + 
+  theme(plot.background = element_blank())
+
+scatter +
+  inset_element(
+    box, 
+    top = .55,
+    right = 1, 
+    bottom = 0,
+    left = .6
+  )
+```
+
+```{r patchwork-inset-2}
+box <- box + 
+  theme(panel.background = element_blank())
+
+scatter +
+  inset_element(
+    box, 
+    top = .9,
+    right = .9,
+    bottom = .1,
+    left = .1
+  )
+```
+
+---
+
+## Exercise 2:
+
+* Using the [“Datasaurus Dozen”](http://www.thefunctionalart.com/2016/08/download-datasaurus-never-trust-summary.html) data set and the previous codes, create this multipanel visualization<br>with the help of `facet_wrap()` and the `{patchwork}` package.
+  ![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/img/exercise-5-2.png)
+
+---
+
+## Resources
+
+* Chapters on [faceting](https://ggplot2-book.org/facet.html) and [arranging plots](https://ggplot2-book.org/arranging-plots.html) of the “ggplot2” book by Hadley Wickham et al.
+
+* [`{patchwork}` package reference](https://patchwork.data-imaginist.com/index.html) with lots of articles on ho to create (more complex) layouts
+
+* [`{cowplot}` package reference](https://wilkelab.org/cowplot/articles/plot_grid.html), another package to arrange multiple plots in a grid<br>(and to add insets and images)
+
+* [How to add annotations to individual facets](https://r-graphics.org/recipe-annotate-facet), part of the “R Graphics Cookbook” book by Winston Chang 
+
+* [“A `{ggplot2}` Tutorial for Beautiful Plotting in R”](https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/), my extensive "how to"-tutorial
 
 ---
 

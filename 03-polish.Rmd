@@ -1,5 +1,9 @@
 ---
 title: "Segment 3: Provide Context with Annotations"
+description: "Part 3 of the Pearson Live Training Session “Hands–On Data Visualization with ggplot2” for O’Reilly"
+author:
+  - name: Cédric Scherer
+    url: https://cedricscherer.com
 output:
   distill::distill_article:
     toc: true
@@ -7,8 +11,526 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
-                      fig.width = 10, fig.height = 6, fig.retina = 2)
+                      fig.width = 10, fig.height = 6, fig.retina = 2,
+                      dev = "ragg_png", res = 1000)
 ```
+
+```{r preparation}
+library(tidyverse)
+theme_set(theme_light(base_size = 18))
+data <- readr::read_csv("https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/data/crypto_cleaned.csv")
+```
+
+## Adjust Colors and Other `aes`thetics
+
+One can use `scale_*()` to change properties of all the **aesthetic dimensions mapped to the data**.
+
+Consequently, there are `scale_*()` functions for all aesthetics such as:
+
+* **positions** via `scale_x_*()` and `scale_y_*()`
+* **colors** via `scale_color_*()` and `scale_fill_*()`
+* **sizes** via `scale_size_*()` and `scale_radius_*()`
+* **shapes** via `scale_shape_*()`  and `scale_linetype_*()`
+* **transparency** via `scale_alpha_*()`
+
+The extensions (`*`) can be filled by e.g.:
+
+* `continuous()`, `discrete()`, `reverse()`, `log10()`, `sqrt()`, `date()` for positions
+* `continuous()`, `discrete()`, `manual()`, `gradient()`, `gradient2()`, `brewer()` for colors
+* `continuous()`, `discrete()`, `manual()`, `ordinal()`, `area()`, `date()` for sizes
+* `continuous()`, `discrete()`, `manual()`, `ordinal()` for shapes
+* `continuous()`, `discrete()`, `manual()`, `ordinal()`, `date()` for transparency
+
+### Scales: `scale_*()`
+
+Scales are directly connected to aesthetics:
+
+```{r structure-scales}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  geom_line() +
+  scale_x_date() + 
+  scale_y_continuous() + 
+  scale_color_discrete()
+```
+
+All scales come with some general and specific arguments to change the appearance:
+
+```{r structure-scales-adj}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  geom_line() +
+  scale_x_date(
+    expand = c(0, 0), ## general
+    date_breaks = "4 months", ## date-only 
+    date_labels = "%m/%y", ## date only
+    name = NULL ## general 
+  ) +
+  scale_y_continuous() +  
+  scale_color_discrete() 
+```
+
+```{r structure-scales-adj2}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  geom_line() +
+  scale_x_date(
+    expand = c(0, 0), ## general
+    date_breaks = "4 months", ## date-only  
+    date_labels = "%m/%y", ## date only
+    name = NULL ## general 
+  ) +
+  scale_y_continuous(
+    labels = scales::dollar_format(), ## general 
+    sec.axis = dup_axis(name = NULL), ## axis only
+    name = "Closing Price" ## general 
+  ) + 
+  scale_color_discrete()
+```
+
+```{r structure-scales-adj3}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  geom_line() +
+  scale_x_date(
+    expand = c(0, 0), ## general 
+    date_breaks = "4 months", ## date-only 
+    date_labels = "%m/%y", ## date only 
+    name = NULL ## general 
+  ) +
+  scale_y_continuous(
+    labels = scales::dollar_format(), ## general  
+    sec.axis = dup_axis(name = NULL), ## axis only 
+    name = "Closing Price" ## general 
+  ) + 
+  scale_color_discrete(
+    type = c("#F0B90B", "#4d4d4e", "#810080", "#00aeff"),  ## color only
+    name = "Cryptocurrency:" ## general 
+  )
+```
+
+![Illustration by Allison Horst](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/ah_continuous_discrete.png)
+
+![Color palette types](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/color-pal-types.png)
+
+
+### Scales: `scale_color_*()`
+
+All colors and fills that are mapped to **categorical** variables can be manipulated with either `scale_color|fill_discrete()` or `scale_color|fill_manual()`.
+
+```{r structure-scales-color-discrete}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  geom_line() +
+  scale_color_discrete(type = c("#F0B90B", "#4d4d4e","#810080", "#00aeff"))
+```
+
+```{r structure-scales-color-manual}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  geom_line() +
+  scale_color_manual(values = c("#F0B90B", "#4d4d4e", "#810080", "#00aeff"))
+```
+
+Here, you can overwrite the labels of your legend items—no need to manipulate the data itself!
+
+```{r structure-scales-color-manual-labels}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  geom_line() +
+  scale_color_manual(
+    values = c("#F0B90B", "#4d4d4e", "#810080", "#00aeff"),
+    labels = c("Binance", "Bitcoin", "EOS", "Litecoin"),
+    name = "Cryptocurrency:" 
+  )
+```
+
+![Comparison of continuous color palettes, taken from the {viridis} package reference](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/rainbow_alternatives.png)
+
+![The same collection of palettes for diferent color vision deficiencies](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/rainbow_alternatives_coblis.png)
+
+There are a few and well crafted built-in palettes you can use as well (the defaults are pretty bad).
+
+### Scales: `scale_color_viridis_*()`
+
+```{r structure-scales-color-viridis-default}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  geom_line() +
+  scale_color_viridis_d()
+```
+
+```{r structure-scales-color-viridis-turbo}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+  geom_line() +
+  scale_color_viridis_d(
+    option = "turbo",
+    begin = .1,
+    end = .9,
+    name = "Cryptocurrency:"
+  )
+```
+
+![Color palettes contained in the latest version of the `{viridis}` package, taken from the {viridis} package reference](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/viridis-scales.png)
+
+The viridis palettes are more suitable for continuous data:
+
+```{r structure-scales-color-viridis-cont}
+ggplot(data, aes(x = date, y = close, color = yday, group = currency)) +
+  geom_line() +
+  scale_color_viridis_c(
+    option = "turbo",
+    begin = .1,
+    end = .9, 
+    name = "Julian Day:"
+  )
+```
+
+```{r structure-scales-color-viridis-cont-rocket}
+ggplot(data, aes(x = date, y = close, color = open, group = currency)) +
+  geom_point() +
+  scale_color_viridis_c(
+    option = "rocket",
+    direction = -1,
+    end = .9,
+    labels = scales::dollar_format(),
+    name = "Julian Day:"
+  )
+```
+
+```{r structure-scales-color-breaks}
+ggplot(data, aes(x = date, y = close, color = open, group = currency)) +
+  geom_point() +
+  scale_color_viridis_c(
+    option = "rocket",
+    direction = -1, 
+    end = .9,
+    breaks = seq(50, 300, by = 100),
+    labels = scales::dollar_format(), 
+    name = "Julian Day:"
+  )
+```
+
+### Scales: `scale_color_brewer_*()`
+
+Colorbrewer provides color schemes for maps.
+
+```{r brewer-apls}
+RColorBrewer::display.brewer.all()
+```
+
+```{r structure-scales-color-brewer-default}
+ggplot(data, aes(x = date, y = close, color = currency)) +
+    geom_line() +
+    scale_color_brewer(
+        palette = "Set2",
+        name = "Cryptocurrency:"
+    )
+```
+
+---
+
+### Exercise 1
+
+Colorbrewer provides color schemes for <u>maps</u>.
+
+* Download the country data set from `{rnaturalearth}`.
+  + see segment 2 if you don't remember how
+* Visualize the economy classes (`economy`) as a choropleth map and use one of the categorical colorbrewer palettes.
+* Now change the code so the fill colors encode the estimated population (`pop_est`). 
+  + What's the problem? How can you fix it?
+  + Tip: Have a look at the note and examples on the help page: `?scale_fill_brewer`
+
+---
+
+### Scales: `scale_fill_gradient()`</code>`
+
+You can also build your own **sequential color palettes**:
+
+```{r map-gradient}
+sf_world <- rnaturalearth::ne_countries(returnclass = "sf")
+
+ggplot(sf_world) +
+  geom_sf(aes(fill = pop_est), color = NA) + 
+  scale_fill_gradient(low = "grey90", high = "firebrick4") +
+  coord_sf(crs = "+proj=moll")
+```
+
+### Scales: `scale_fill_gradient2()`</code>`
+
+You can also build your own **diverging color palettes**:
+
+```{r map-gradient-div}
+ggplot(sf_world) +
+  geom_sf(aes(fill = as.numeric(factor(income_grp))), color = NA) +
+  scale_fill_gradient2(low = "firebrick4", high = "darkcyan", mid = "grey90", name = "Income group:") +
+  coord_sf(crs = "+proj=moll")
+```
+
+```{r map-gradient-div-midpoint}
+ggplot(sf_world) +
+  geom_sf(aes(fill = as.numeric(factor(income_grp))), color = NA) +
+  scale_fill_gradient2(low = "firebrick4", high = "darkcyan", mid = "grey90", name = "Income group:", 
+                       midpoint = 3) +
+  coord_sf(crs = "+proj=moll")
+```
+
+### Color Palettes in `R`
+
+Several packages offer predefined palettes, e.g.:
+
+*  `{viridis}` for perceptually uniform palettes 
+*  `{scico}` for more perceptually uniform palettes 
+*  `{rcartocolor}` for map color palettes 
+*  `{ggsci}` for scientific journal and sci-fi themed color 
+*  `{ggthemes}` for colors of popular software & publishers 
+*  `{LaCroixColoR}` for vibrant summery colors 
+
+Check the [collection by Emil Hvitfeldt](https://github.com/EmilHvitfeldt/r-color-palettes/blob/master/type-sorted-palettes.md) for an extensive list of color palettes available in `R`
+
+
+## A ggplot Object
+
+By the way, you can store ggplots in objects and extend them later:
+
+```{r map-store-object}
+g <- ggplot(sf_world) +
+  geom_sf(aes(fill = as.numeric(factor(income_grp))), color = NA) +
+  scale_fill_gradient2(low = "firebrick4", high = "darkcyan", mid = "grey90", name = "Income group:", 
+                       midpoint = 3) +
+  coord_sf(crs = "+proj=moll")
+
+class(g)
+```
+
+
+## Legends (Guides)
+
+### Style Legends: `guides()`
+
+The `guides()` function allows to adjust the appearance of each legend:
+
+```{r guide-default}
+g +
+  guides(fill = guide_colorbar())
+```
+
+```{r guide-legend }
+g +
+  guides(fill = guide_legend())
+```
+
+```{r guide-legend-rev }
+g +
+  guides(fill = guide_legend(reverse = TRUE))
+```
+
+```{r guide-legend-height }
+g +
+  guides(fill = guide_legend(reverse = TRUE, keyheight = unit(2, "lines")))
+```
+
+```{r guide-colorbar-height-width }
+g +
+  guides(fill = guide_colorbar(barheight = unit(12, "lines"),
+                               barwidth = unit(1, "lines")))
+```
+
+---
+
+## Exercise 2
+
+* Create the following visualization with a viridis palette:
+  ![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/img/exercise-3-2.png)
+
+---
+
+### Style Legends: `theme()`
+
+The position of the legend and some other properties can be changed via `theme()`:
+
+```{r guide-colorbar-theme}
+g +
+  guides(fill = guide_legend()) +
+  theme(legend.position = "top")
+```
+
+```{r guide-colorbar-theme-key-size}
+g +
+  guides(fill = guide_legend()) +
+  theme(legend.position = "top", legend.key.height = unit(.5, "lines"),
+        legend.key.width = unit(4, "lines"))
+```
+
+You can change the position of the legend title and labels in `guides()`:
+
+```{r guide-colorbar-theme-legendtitlepos}
+g +
+  guides(fill = guide_legend(title.position = "top", title.hjust = .5, label.position = "bottom")) +
+  theme(legend.position = "top", legend.key.height = unit(.5, "lines"),
+        legend.key.width = unit(4, "lines")) 
+```
+
+## Template and Custom Theming
+
+### Themes: `theme_*()`
+
+You have already seen built-in themes in segment 1:
+
+```{r themes}
+gg <- ggplot(data, aes(x = date, y = close, color = currency)) +
+       geom_line(size = 1.5)
+
+gg +
+  theme_grey() +
+  ggtitle("theme_grey()  or  theme_gray()") 
+
+gg +
+  theme_classic() +
+  ggtitle("theme_classic()") 
+
+gg +
+  theme_bw() +
+  ggtitle("theme_bw()") 
+
+gg +
+  theme_light() +
+  ggtitle("theme_light()")
+
+gg +
+  theme_minimal() +
+  ggtitle("theme_minimal()") 
+
+gg +
+  theme_dark() +
+  ggtitle("theme_dark()") 
+
+gg +
+  theme_linedraw() +
+  ggtitle("theme_linedraw()")
+
+gg +
+  theme_void() +
+  ggtitle("theme_void()") 
+```
+
+You can either add theme changes to each plot or globally for all plots:
+
+
+```{r theme-local}
+ggplot(data, aes(x = date, y = close)) +
+  geom_line(aes(color = currency)) + 
+  theme_classic(base_size = 16)
+```
+
+```{r theme-global}
+theme_set(theme_classic(base_size = 16))
+ggplot(data, aes(x = date, y = close)) +
+  geom_line(aes(color = currency))
+```
+
+```{r reset-theme, echo=FALSE}
+theme_set(theme_light(base_size = 18))
+```
+
+```{r theme-function}
+theme_grey
+```
+
+### `theme()` Arguments
+
+There are many elements you can customize. You can either group them by their type or by their category:
+
+* element types: 
+  - `text` → all labels, axis text, legend title and text
+  - `line` → axis lines, ticks, grid lines
+  - `rect` → plot area, panel area, legend and legend keys, facets
+
+
+* element category:
+  - `axis.*` → titles, text, ticks, lines
+  - `legend.*` → background, margin, spacing, keys, text, title, position, direction, box
+  - `panel.*` → background, border, margin, spacing, grid (major and minor)
+  - `plot.*` → background, title, subtitle, caption, tag, margin
+  - `strip.*` → background, placement, text
+
+You can directly alter the appearance by adding `theme()` to a ggplot.
+
+
+#### Rectangular Elements via `element_rect()`
+
+![Theme components that are `element_rect` (Part 1)](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/element-rect-1.png)
+
+![Theme components that are `element_rect` (Part 2)](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/element-rect-2.png)
+
+
+```{r element-rect-example}
+g +
+  theme(plot.background = element_rect(
+    color = "black",
+    fill = "orange",
+    size = 2,
+    linetype = "dotted"
+  ))
+```
+
+
+#### Line Elements via `element_line()`
+
+![Theme components that are `element_line`](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/element-line.png)
+
+```{r element-line-example}
+g +
+  theme(panel.grid = element_line(
+    color = "black",
+    size = 3,
+    linetype = "dashed",
+    lineend = "square", # round, butt
+    arrow = arrow(angle = 30, length = unit(0.25, "inches"))
+  ))
+```
+
+#### Text Elements via `element_text()`
+
+![Theme components that are `element_text`](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/element-text.png)
+
+
+```{r element-text-example}
+g +
+  ggtitle("My New\nTitle") +
+  theme(plot.title = element_text(
+    #family = "Roboto", ## you need {systemfonts} for this
+    face = "bold", ## plain, italic, bolditalic
+    size = 24,
+    color = "firebrick",
+    lineheight = .7,
+    angle = 180,
+    hjust = .5,
+    vjust = .0,
+    margin = margin(
+      10, ## t (top)
+      0,  ## r (right)
+      30, ## b (bottom)
+      0   ## l (left)
+    )
+  ))
+```
+
+---
+
+## Exercise 3
+
+* Have a closer look at the codes of `theme_grey`/`theme_gray` and one of the other themes. What's the difference? 
+* Create a theme that is as ugly as possible!  
+  or:  
+  Create a theme that you can use ass personal theme.  
+* Apply it to a plot.
+
+---
+
+## Resources
+
+* [Modify theme components](https://ggplot2.tidyverse.org/reference/theme.html) on the ggplot reference page
+
+* Chapter 19 [Themes](https://ggplot2-book.org/polishing.html) of the “ggplot2” book by Hadley Wickham et al.
+
+* [“Creating and Using Custom ggplot2 Themes”](https://themockup.blog/posts/2020-12-26-creating-and-using-custom-ggplot2-themes/), blog post by Thomas Mock
+
+* [“Themes to Improve Your ggplot Figures”](https://rfortherestofus.com/2019/08/themes-to-improve-your-ggplot-figures/) from [R for the Rest of Us](https://rfortherestofus.com/) with a collection of additional themes
+
+* [“A `{ggplot2}` Tutorial for Beautiful Plotting in R”](https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/), my extensive "how to"-tutorial
 
 ---
 
@@ -23,3 +545,4 @@ sessionInfo()
 ```
 
 </details>
+

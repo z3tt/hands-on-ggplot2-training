@@ -1,5 +1,9 @@
 ---
 title: "Segment 1: The Basics of ggplot2"
+description: "Part 1 of the Pearson Live Training Session “Hands–On Data Visualization with ggplot2” for O’Reilly"
+author:
+  - name: Cédric Scherer
+    url: https://cedricscherer.com
 output:
   distill::distill_article:
     toc: true
@@ -7,15 +11,16 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
-                      fig.width = 10, fig.height = 6, fig.retina = 2)
+                      fig.width = 10, fig.height = 6, fig.retina = 2,
+                      dev = "ragg_png", res = 1000)
 ```
 
-### The ggplot2 Package
+## The `{ggplot2}` Package
 
-> ggplot2 is a system for declaratively creating graphics,<br>based on "The Grammar of Graphics" (Wilkinson, 2005).
-> You provide the data, tell ggplot2 how to map variables to aesthetics, what graphical primitives to use, and it takes care of the details.
+> `{ggplot2}` is a system for declaratively creating graphics,<br>based on "The Grammar of Graphics" (Wilkinson, 2005).
+> You provide the data, tell `{ggplot2}` how to map variables to aesthetics, what graphical primitives to use, and it takes care of the details.
 
-### Advantages of ggplot2
+### Advantages of `{ggplot2}`
 
 * consistent underlying grammar of graphics (Wilkinson, 2005)
 * very flexible, layered plot specification 
@@ -24,6 +29,29 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
 
 
 ## The Setup
+
+### The Course Material
+
+* Clone the [repository](https://github.com/z3tt/hands-on-ggplot2-training).
+
+![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/setup/repo.png)
+
+* Open the R Project: `hands-on-ggplot2.Rproj`
+
+![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/setup/rproj.png)
+
+* Open the first script: `01-grammar.Rmd`
+
+![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/setup/rstudio-file.png)
+
+* Run code locally
+
+![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/setup/run-code.png)
+
+* ... or knit the report
+
+![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/setup/knit.png)
+![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/setup/report.png)
 
 ### The Package
 
@@ -83,13 +111,20 @@ The so–called **namespace** allows to access functions from a package directly
 
 Furthermore, it helps readers to understand from which package a function is imported from.
 
+---
 
+## Exercise 1
+
+* Import the data set on Chicago weather data:<br>https://raw.githubusercontent.com/z3tt/ggplot-courses/master/data/chicago-nmmaps.csv
+* Inspect the data.
+
+---
 
 ## The Grammar of Graphics
 
 ### The Structure of ggplot2
 
-![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/dummy/slides/img/structure-table.png)
+![](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/structure-table.png)
 
 
 ### Data: ggplot(data)
@@ -122,9 +157,9 @@ ggplot(data, aes(date, close))
 ### Layers: geom_\*() and stat_*()
 
 By adding one or multiple layers we can tell `ggplot2` *how* to represent the data.
-There are lots of build-in geometric elements (`geom's`) and statistical transformations (`stat's`):
+There are lots of built-in geometric elements (`geom's`) and statistical transformations (`stat's`):
 
-![Adapted from ggplot2.tidyverse.org/reference](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/dummy/slides/img/ggplot-layers.png)
+![Adapted from ggplot2.tidyverse.org/reference](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/ggplot-layers.png)
 
 We can tell `ggplot2` to represent the data for example as a **scatter plot**:
 
@@ -133,26 +168,28 @@ ggplot(data, aes(date, close)) +
   geom_point()
 ```
 
-... or as a **line plot** to visualize the data as time series:
-
-```{r structure-geom-line}
-ggplot(data, aes(date, close)) +
-  geom_line()
-```
 
 ### Aesthetics: aes() (again)
 
 Aesthetics do not only refer to x and y positions, but also groupings, colors, fills, shapes etc.
 
-```{r structure-aes-line-groups}
-ggplot(data = data, mapping = aes(x = date, y = close, group = currency)) +
-  geom_line()
-```
-
 ```{r structure-aes-line-colors}
 ggplot(data = data, mapping = aes(x = date, y = close, color = currency)) +
-  geom_line()
+  geom_point()
 ```
+
+
+### Important Things First: Change the Default Theme
+
+You can replace the default theme with one of the other built-in themes with `theme_set()`.
+Note that you can as well adjust some global settings, for example the `base_size` which is often too small in the default (11).
+
+```{r theme}
+theme_set(theme_light(base_size = 18))
+```
+
+By using `theme_set()` the new theme is used for any plot you create aftwerwards! Give it a try on go back to the last chunk and re-run the code to generate the colored scatter plot.
+
 
 ### Layers: geom_\*() and stat_*() (repeated)
 
@@ -160,7 +197,7 @@ The exciting thing about layers is that you can combine several `geom_*()` and `
 
 ```{r structure-geom-point-smooth}
 ggplot(data, aes(date, close, color = currency)) +
-  stat_smooth() +
+  geom_line() +
   geom_point()
 ```
 
@@ -168,7 +205,7 @@ ggplot(data, aes(date, close, color = currency)) +
 
 ```{r structure-geom-point-smooth-aes-global}
 ggplot(data, aes(date, close, color = currency, shape = currency)) +
-  stat_smooth() +
+  geom_line() +
   geom_point()
 ```
 
@@ -176,135 +213,98 @@ ggplot(data, aes(date, close, color = currency, shape = currency)) +
 
 ```{r structure-geom-point-smooth-aes-individual}
 ggplot(data, aes(date, close)) +
-  stat_smooth(aes(color = currency)) +
+  geom_line(aes(color = currency)) +
   geom_point(aes(shape = currency))
 ```
 
 ---
 
-## Exercise
+## Exercise 2
 
-* Import the data set on Chicago weather data: https://raw.githubusercontent.com/z3tt/ggplot-courses/master/data/chicago-nmmaps.csv
-  
-* Inspect the data.
+* If needed, import the Chicago weather data again:
+
+```{r import-chic-again}
+chic <- readr::read_csv(
+  "https://raw.githubusercontent.com/z3tt/ggplot-courses/master/data/chicago-nmmaps.csv"
+)
+```
 
 * Create a scatter plot of temperature (`temp`) versus day (`date`).
-
 * Color the points by season (`season`).
-
 * Color the points by year (`year`).
   + What's the problem? How could you fix it?
-
 * **Bonus:** Turn the scatter plot, colored by season, into a line plot.
   + What's the problem? How could you fix it?
 
----
 
+## Saving a `ggplot`
 
-## The Grammar of Graphics (continued)
+You can export your plot via the `ggsave()` function:
 
-### Scales: scales_*()
+```{r ggsave, eval=FALSE}
+ggsave(filename = "my_ggplot.pdf", 
+       width = 10, height = 7, 
+       device = cairo_pdf)
 
-Scales are directly connected to aesthetics:
-
-```{r structure-scales}
-ggplot(data, aes(x = date, y = close, color = currency)) +
-  stat_smooth() +
-  geom_point() +
-  scale_x_date() + 
-  scale_y_continuous() + 
-  scale_color_discrete()
+ggsave(filename = "my_ggplot.png", 
+       width = 10, height = 7, 
+       dpi = 700)
 ```
 
-```{r structure-scales-adj}
-ggplot(data, aes(x = date, y = close, color = currency)) +
-  stat_smooth() +
-  geom_point() +
-  scale_x_date(
-    expand = c(0, 0),
-    date_breaks = "4 months", 
-    date_labels = "%m/%y",
-    name = NULL
-  ) +
-  scale_y_continuous(
-    labels = scales::dollar_format(),
-    sec.axis = dup_axis(name = NULL),
-    name = "Closing Price"
-  ) + 
-  scale_color_discrete(
-    guide = "none"
-  )
-```
+![Source: canva.com](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/canva_vector.png)
 
-### Coordinate Systems: coord_*()
-
-The coordinate system maps the two position to a 2d position on the plot:
-
-```{r structure-coord}
-ggplot(data, aes(x = date, y = close, 
-                 color = currency)) +
-  stat_smooth() +
-  geom_point() +
-  scale_x_date() + 
-  scale_y_continuous() + 
-  scale_color_discrete() +
-  coord_cartesian()
-```
-
-```{r structure-coord-polar}
-ggplot(data, aes(x = date, y = close, 
-                 color = currency)) +
-  stat_smooth() +
-  geom_point() +
-  scale_x_date() + 
-  scale_y_continuous() + 
-  scale_color_discrete() +
-  coord_polar()
-```
-
-Changing the limits on the coordinate system allows to zoom in:
-
-```{r structure-coord-zoom}
-ggplot(data, aes(x = date, y = close, 
-                 color = currency)) +
-  stat_smooth() +
-  geom_point() +
-  scale_x_date() + 
-  scale_y_continuous() + 
-  scale_color_discrete() +
-  coord_cartesian(
-    xlim = c(as.Date("2018-11-01"),
-             as.Date("2019-11-01")),
-    ylim = c(NA, 100)
-  )
-```
-
--> Facets, Themes, and Annotations will follow later!
-
-
+-> Scales, Coordinate Systems, Facets, Themes, and Annotations will follow later
 
 ---
 
-## APPENDIX
+## Resources
+
+* [“ggplot2: Elegant Graphics for Data Analysis”](https://ggplot2-book.org/), free–access book by Hadley Wickham et al.
+
+* [{ggplot2} reference](https://ggplot2.tidyverse.org/reference/)
+
+* [{ggplot2} cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/data-visualization-2.1.pdf)
+
+* [“R for Data Science”](https://4ds.had.co.nz), free–access book by Hadley Wickham
+
+* [“Data Visualization: A Practical Introduction”](https://socviz.co), free–access book  by Kieran Healy
+
+* [“A `{ggplot2}` Tutorial for Beautiful Plotting in R”](https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/), my extensive "how to"-tutorial
+
+---
+
+## Appendix
 
 ### Import the Data
+
+#### The `{here}` Package
+
+A good workflow when working with local files is offered by the `{here}` package in combination with R projects:
+
+```{r data-readr-local-here}
+here::here()
+
+data_local <- readr::read_csv(here::here("data", "crypto_cleaned.csv"))
+
+data_local
+```
 
 #### Base R
 
 The base R function `read.csv()` works in the same way as `readr::read_csv()`:
 
 ```{r data-base}
-data2 <- read.csv(url)
+data <- read.csv(here::here("data", "crypto_cleaned.csv"))
 
-head(data2)
+head(data)
 ```
 
 ... and we can turn it into a **tibble** afterwards:
 
 ```{r data-base-tbl}
-data2 <- tibble::as_tibble(data2)
+data <- tibble::as_tibble(data)
 
-data2
+data
 ```
 
 However, note that by default the date column is runed into type `character`.
@@ -317,25 +317,36 @@ The `import()` function from the `{rio}` package allows to load all kind of data
 ```{r data-rio-url}
 #install.packages("rio")
 
-data3 <- rio::import(url)
+data <- rio::import(here::here("data", "crypto_cleaned.csv"))
 
-head(data3)
+head(data) ## use just head because the output is very long
 ```
 
-... and we can turn it into a **tibble** afterwards:
+We can turn it into a **tibble** afterwards—or specify it directly when importing the data set:
 
 ```{r data-rio-tbl}
-data3 <- tibble::as_tibble(data3)
+data <- rio::import(here::here("data", "crypto_cleaned.csv"), setclass = "tbl")
 
-data3
+data
 ```
 
-You could also load, for example, Excel files with the same function:
+You could also load, for example, JSON or Excel files with the same function:
+
+```{r data-rio-json}
+data_json <- rio::import(here::here("data", "crypto_cleaned.json"))
+
+data_json <- as_tibble(data_json) ## somehow `setclass` doesn't work with json
+
+data_json
+```
 
 ```{r data-rio-xlsx}
-data_xlsx <- rio::import( "https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/data/crypto_cleaned.xlsx")
+data_xlsx <- rio::import(
+  here::here("data", "crypto_cleaned.xlsx"),
+  setclass = "tbl"
+)
 
-head(data_xlsx)
+data_xlsx
 ```
 
 We can remove the first column by using the `select()` function from the `{dplyr}` package:
@@ -347,24 +358,6 @@ data_xlsx <- dplyr::select(data_xlsx, -1)
 data_xlsx
 ```
 
-... and turn it into a **tibble** afterwards:
-
-```{r data-xlsx-tibble}
-data_xlsx <- tibble::as_tibble(data_xlsx)
-
-data_xlsx
-```
-
-Of course, one can load local files as well. Preferably with the help of the `{here}` package and R projects:
-
-```{r data-readr-local-here}
-here::here()
-
-data_local <- readr::read_csv(here::here("data", "crypto_cleaned.csv"))
-
-data_local
-```
-
 ---
 
 ### Aesthetics: aes()
@@ -374,6 +367,51 @@ Some prefer to place the `aes()` outside the `ggplot()` call:
 ```{r structure-aes-outside}
 ggplot(data) +
   aes(x = date, y = close)
+```
+
+
+
+### Coordinate Systems: coord_*()
+
+The coordinate system maps the two position to a 2d position on the plot:
+
+```{r structure-coord}
+ggplot(data, aes(x = date, y = close, 
+                 color = currency)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date() + 
+  scale_y_continuous() + 
+  scale_color_discrete() +
+  coord_cartesian()
+```
+
+```{r structure-coord-polar}
+ggplot(data, aes(x = date, y = close, 
+                 color = currency)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date() + 
+  scale_y_continuous() + 
+  scale_color_discrete() +
+  coord_polar()
+```
+
+Changing the limits on the coordinate system allows to zoom in:
+
+```{r structure-coord-zoom}
+ggplot(data, aes(x = date, y = close, 
+                 color = currency)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date() + 
+  scale_y_continuous() + 
+  scale_color_discrete() +
+  coord_cartesian(
+    xlim = c(as.Date("2018-11-01"),
+             as.Date("2019-11-01")),
+    ylim = c(NA, 100)
+  )
 ```
 
 ---

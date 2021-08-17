@@ -1,5 +1,9 @@
 ---
 title: "Segment 2: Build Plots Layer by Layer"
+description: "Part 2 of the Pearson Live Training Session “Hands–On Data Visualization with ggplot2” for O’Reilly"
+author:
+  - name: Cédric Scherer
+    url: https://cedricscherer.com
 output:
   distill::distill_article:
     toc: true
@@ -7,7 +11,568 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
-                      fig.width = 10, fig.height = 6, fig.retina = 2)
+                      fig.width = 10, fig.height = 6, fig.retina = 2,
+                      dev = "ragg_png", res = 1000)
+```
+
+```{r preparation, include=FALSE}
+library(tidyverse)
+theme_set(theme_light(base_size = 18))
+data <- readr::read_csv("https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/data/crypto_cleaned.csv")
+```
+
+
+## Create Any Chart Type
+
+As you have already seen, we can quickly switch through different chart types:
+
+```{r scatter}
+ggplot(data, aes(date, close, color = currency)) +
+  geom_point()
+```
+
+```{r line}
+ggplot(data, aes(date, close, color = currency)) +
+  geom_line()
+```
+
+
+### Area Charts
+
+```{r area}
+ggplot(data, aes(date, close, color = currency)) +
+  geom_area(aes(fill = currency), alpha = .5)
+```
+
+Many of the geom's can further adjusted:
+
+```{r area-dodge}
+ggplot(data, aes(date, close, color = currency)) +
+  geom_area(aes(fill = currency), alpha = .5, position = "dodge")
+```
+
+```{r area-fill}
+ggplot(data, aes(date, close, color = currency)) +
+  geom_area(aes(fill = currency), alpha = .5, position = "fill")
+```
+
+```{r area-fill-no-exp}
+ggplot(data, aes(date, close, color = currency)) +
+  geom_area(aes(fill = currency), alpha = .5, position = "fill") +
+  coord_cartesian(expand = FALSE)
+```
+
+### Box Plots
+
+Some geom's drastically change the appearance of the data:
+
+```{r boxplot}
+ggplot(data, aes(close, currency)) +
+  geom_boxplot()
+```
+
+And, as you already know, we can combine geom's to make the plot more insightful:
+
+```{r boxplot-dots}
+ggplot(data, aes(close, currency)) +
+  geom_boxplot(outlier.alpha = 0, color = "grey60", size = 1) + 
+  geom_point(alpha = .2)
+```
+
+
+### Jitterstrips
+
+And also the point geom can be adjusted, e.g. adding some random noise called **jitter**:
+
+```{r boxplot-jitter}
+ggplot(data, aes(close, currency)) +
+  geom_boxplot(outlier.alpha = 0, color = "grey60", size = 1) + 
+  geom_point(alpha = .2, position = position_jitter(height = .2))
+```
+
+
+### Barcode Plots
+
+... or converted to lines forming a **barcode plot**:
+
+```{r boxplot-barcode}
+ggplot(data, aes(close, currency)) +
+  geom_boxplot(outlier.alpha = 0, color = "grey60", size = 1) + 
+  geom_point(alpha = .1, shape = "|", size = 9)
+```
+
+```{r boxplot-barcode-nudge}
+ggplot(data, aes(close, currency)) +
+  geom_boxplot(outlier.alpha = 0, width = .4, position = position_nudge(y = .2)) +
+  geom_point(alpha = .1, shape = "|", size = 9, position = position_nudge(y = -.2))
+```
+
+
+### Hexagonal Bin Plot
+
+Plots that bin the data can be helpful to deal with overplotting:
+
+```{r scatter-open-close}
+ggplot(data, aes(open, close)) +
+  geom_point(alpha = .3)
+```
+
+```{r hex-open-close}
+ggplot(data, aes(open, close)) +
+  geom_hex()
+```
+
+Let's add the diagonal to the plot:
+
+```{r scatter-open-close-diag}
+ggplot(data, aes(open, close)) +
+  geom_abline(slope = 1, intercept = 0) +
+  geom_point(alpha = .3) +
+  coord_fixed()
+```
+
+```{r hex-open-close-diag}
+ggplot(data, aes(open, close)) +
+  geom_abline(slope = 1, intercept = 0) +
+  geom_hex() +
+  coord_fixed()
+```
+
+
+### Rectangular Bin Plot
+
+If you don't like hexagonals, use rectangles!
+
+```{r rect-open-close-diag}
+ggplot(data, aes(open, close)) +
+  geom_abline(slope = 1, intercept = 0) +
+  geom_bin2d() +
+  coord_fixed()
+```
+
+Actually, the fill is mapped to a hidden summary statistic that is calculated by `{ggplot2}`:
+
+```{r rect-count}
+ggplot(data, aes(open, close)) +
+  geom_abline(slope = 1, intercept = 0) +
+  geom_bin2d(aes(fill = ..count..)) +
+  coord_fixed()
+```
+
+```{r rect-density}
+ggplot(data, aes(open, close)) +
+  geom_abline(slope = 1, intercept = 0) +
+  geom_bin2d(aes(fill = ..density..)) +
+  coord_fixed() 
+```
+
+
+### Heatmaps
+
+With `geom_tile()` one can create heatmaps:
+
+```{r heatmap}
+ggplot(data, aes(date, currency, fill = close)) +
+  geom_tile()
+```
+
+```{r heatmap-expand}
+ggplot(data, aes(date, currency, fill = close)) +
+  geom_tile() +
+  coord_cartesian(expand = FALSE)
+```
+
+
+## Statistical Transformations
+
+### Draw Fittings
+
+You can directly add smoothed conditional means:
+
+```{r stats-smooth2}
+ggplot(data, aes(date, close, color = currency)) +
+  geom_point(size = .1) +
+  stat_smooth() 
+```
+
+```{r stats-smooth2-again}
+ggplot(data, aes(date, close, color = currency)) +
+  geom_point(size = .1) +
+  stat_smooth() 
+```
+
+By default this adds a LOESS (locally weighted scatter plot smoothing) or a GAM (generalized additive model) depending on the number of data points (GAM in case of ≥ 1000 observations).
+
+You can specify the fitting method and the formula:
+
+```{r stats-smooth-polynom}
+ggplot(data, aes(date, close, color = currency)) +
+  geom_point(size = .1) +
+  stat_smooth(method = "lm", formula = y ~ x + I(x^2) +  I(x^3) + I(x^4))
+```
+
+Other methods such as method = "lm" (without an explicit formula) for simple linear regressions and method = "glm" for generalized linear models are available as well.
+
+
+### Calculate Summaries
+
+Without pre-calculations one can easily plot data summaries:
+
+```{r stats-summary}
+ggplot(data, aes(currency, close)) +
+  stat_summary()
+```
+
+You can always go both ways — `stat_x(geom = "y") == geom_y(stat = "x")`:
+
+```{r stat-geom}
+ggplot(data, aes(open, close)) +
+  stat_identity(geom = "point")
+
+ggplot(data, aes(open, close)) +
+  geom_point(stat = "identity")
+```
+
+
+```{r stat-geom-2}
+ggplot(data, aes(factor(month), close)) +
+  stat_summary(geom = "pointrange")
+
+ggplot(data, aes(factor(month), close)) +
+  geom_pointrange(stat = "summary")
+```
+
+
+```{r stats-summary-default}
+ggplot(data, aes(currency, close)) +
+  stat_summary(
+    geom = "pointrange",
+    fun.data = "mean_se"
+  )
+```
+
+```{r stats-summary-custom}
+ggplot(data, aes(currency, close)) +
+  stat_summary(
+    fun = function(x) mean(x),
+    fun.min = function(x) mean(x) - sd(x),
+    fun.max = function(x) mean(x) + sd(x)
+  ) 
+```
+
+```{r stats-summary-custom-label}
+ggplot(data, aes(currency, close)) +
+  stat_summary(
+    fun = function(x) mean(x),
+    fun.min = function(x) mean(x) - sd(x),
+    fun.max = function(x) mean(x) + sd(x)
+  ) +
+  stat_summary(
+      geom = "text",
+      aes(label = round(..y.., 2))
+  )
+```
+
+```{r stats-summary-custom-label-warning}
+ggplot(data, aes(currency, close)) +
+  stat_summary(
+    fun = function(x) mean(x),
+    fun.min = function(x) mean(x) - sd(x),
+    fun.max = function(x) mean(x) + sd(x)
+  ) +
+  stat_summary(
+      geom = "text",
+      fun = function(x) mean(x),
+      aes(label = round(..y.., 2))
+  )
+```
+
+```{r stats-summary-custom-label-adj}
+ggplot(data, aes(currency, close)) +
+  stat_summary(
+    fun = function(x) mean(x),
+    fun.min = function(x) mean(x) - sd(x),
+    fun.max = function(x) mean(x) + sd(x)
+  ) +
+  stat_summary(
+      geom = "text",
+      fun = function(x) mean(x),
+      aes(label = round(..y.., 2)),
+      size = 5,
+      hjust = -.5
+  )
+```
+
+
+### Dumbbell Plot
+
+```{r stats-summary-dumbbell-1}
+ggplot(data, aes(currency, close)) +
+  stat_summary(
+    geom = "linerange",
+    fun.min = "min",
+    fun.max = "max"
+  ) 
+```
+
+```{r stats-summary-dumbbell-2}
+ggplot(data, aes(currency, close)) +
+  stat_summary(
+    geom = "linerange",
+    fun.min = "min",
+    fun.max = "max"
+  ) +
+  stat_summary(
+    fun = "range"
+  ) 
+```
+
+```{r stats-summary-dumbbell-3}
+ggplot(data, aes(currency, close)) +
+  stat_summary(
+    geom = "linerange",
+    fun.min = "min",
+    fun.max = "max"
+  ) +
+  stat_summary(
+    fun = "range"
+  ) +
+  stat_summary(
+    fun = "range",
+    aes(label = round(..y.., 2)),
+    geom = "text",
+    size = 4,
+    hjust = 1,
+    position = position_nudge(x = -.08)
+  )
+```
+
+
+## Statistical Transformations: `stat_*()`
+
+There are several other statistical transformations available:
+
+* `stat_count()` to count observations (e.g. for bar charts)
+* `stat_bin()` and `stat_bin2d()` to count observations per bin (e.g. for histograms)
+* `stat_density()`  and `stat_density2d()` to compute kernel density estimates (e.g. for density curves)
+* `stat_contour()` and `stat_contour_filled()` to retrieve threshold levels (e.g. for contour maps)
+* `stat_function()` to draw functions as a continuous curves
+* `stat_boxplot()` to calculate the five summary statistics for a box plot
+* `stat_ydensity()` to compute vertical density estimates (e.g. for violin plots)
+
+---
+
+## Exercise 1
+
+* Import the password data set: https://raw.githubusercontent.com/Z3tt/ggplot-courses/master/data/passwords.csv
+* Visualize the number of passwords per category as bar chart.
+* Add to each bar a label of the number of passwords.
+
+---
+
+class: center, middle, inverse
+
+![Collection of some chart types provided by ggplot2 extension packages](https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/slides/img/extensions.png)
+
+
+## Spatial Maps
+
+### Simple Features (Access)
+
+[**Simple features** or **simple features access**](https://r-spatial.github.io/sf/articles/sf1.html) refers to a formal standard (ISO 19125-1:2004) that describes how objects in the real world can be represented in computers, with emphasis on the *spatial geometry*.
+
+`{sf}` is an R package that provides simple features access for R.
+
+
+### Natural Earth
+
+[**Natural Earth**](https://www.naturalearthdata.com/) is a *public domain map data set of physical and cultural features*, available at 1:10m, 1:50m,and 1:110 million scales. 
+
+`{rnaturalearth}` is an R package to hold and facilitate interaction with Natural Earth map data.
+
+
+### Setup
+
+```{r sf-rnaturalearth-packages}
+#install.packages("sf")
+library(sf)
+
+#install.packages("rnaturalearth")
+library(rnaturalearth)
+```
+
+
+### Get the Data
+
+The `{rnaturalearth}` allows downloading the Natural Earth data sets in simple feature format.
+
+```{r rnatural-earth-download}
+sf_world <- ne_countries(returnclass = "sf")
+sf_airports <- ne_download(scale = 'large', category = "cultural", type = "airports", returnclass = "sf")
+
+tibble::glimpse(sf_world)
+```
+
+
+### Plot the Map
+
+`{ggplot2}` comes with a set of `geom`, `stat`, and `coord` are used to visualize sf objects. 
+
+```{r first-map}
+ggplot(sf_world) +
+  geom_sf()
+```
+
+`geom_sf()` works with all types of vector data and returns geometries depending on the simple features:
+
+```{r sf-polygon-point}
+ggplot(sf_world) +
+  geom_sf() +
+  geom_sf(data = sf_airports)
+```
+
+```{r first-map-colors}
+ggplot(sf_world) +
+  geom_sf(color = "forestgreen", alpha = .4) +
+  geom_sf(data = sf_airports, color = "purple", alpha = .4)
+```
+
+Generate simple features objects e.g. to highlight a location:
+
+```{r data-locator}
+sf_bln <- sf::st_sfc(sf::st_point(c(13.4050, 52.5200)), crs = sf::st_crs(sf_world))
+
+sf_bln
+```
+
+```{r first-map-locator}
+ggplot(sf_world) +
+  geom_sf(color = NA) +
+  geom_sf(data = sf_bln, shape = 21, color = "firebrick", fill = NA, size = 5, stroke = 2)
+```
+
+
+```{r first-map-fill}
+ggplot(sf_world) +
+  geom_sf(color = "forestgreen", fill = "forestgreen", alpha = .4)
+```
+
+```{r first-map-fill-economy}
+ggplot(sf_world) +
+  geom_sf(aes(fill = economy))
+```
+
+```{r first-map-color}
+ggplot(sf_world) +
+  geom_sf(aes(fill = economy), color = "white", size = .2)
+```
+
+
+### Change the Projection
+
+Use `coord_sf()` to change the projection without changing the spatial data set!
+
+```{r first-map-proj-moll}
+ggplot(sf_world) +
+  geom_sf(aes(fill = economy), color = "white", size = .2) +
+  coord_sf(crs = "+proj=moll")
+```
+
+```{r first-map-proj-custom1}
+ggplot(sf_world) +
+  geom_sf(aes(fill = economy), color = "white", size = .2) +
+  coord_sf(crs = "+proj=laea +x_0=0 +y_0=0 +lon_0=0 +lat_0=0")
+```
+
+```{r first-map-proj-custom2}
+ggplot(sf_world) +
+  geom_sf(aes(fill = economy), color = "white", size = .2) +
+  coord_sf(crs = "+proj=laea +x_0=0 +y_0=0 +lon_0=-30 +lat_0=-25")
+```
+
+```{r first-map-proj-custom3}
+ggplot(sf_world) +
+  geom_sf(aes(fill = economy), color = "white", size = .2) +
+  coord_sf(crs = "+proj=laea +x_0=0 +y_0=0 +lon_0=-70 +lat_0=0")
+```
+
+---
+
+## Exercise 2
+
+* Download data set(s) for your home country and plot it/them.
+* Change the projection with `coord_sf` and observe how the spatial mapping changes.
+
+---
+
+## Resources
+
+* Chapters on [individual geom's](https://ggplot2-book.org/individual-geoms.html), [collective geom's](https://ggplot2-book.org/collective-geoms.html), [statistical summaries](https://ggplot2-book.org/statistical-summaries.html), and [maps](https://ggplot2-book.org/maps.html)of the “ggplot2” book by Hadley Wickham et al.
+
+* [Overview of layers](https://ggplot2.tidyverse.org/reference/) contained in the `{ggplot2}` package
+
+* [R Graph Gallery](https://www.r-graph-gallery.com/) that provides hundreds of charts with their reproducible code
+
+* List of [`{ggplot2}` extension packages](https://exts.ggplot2.tidyverse.org/)
+
+* [“Geocomputation with R”](https://geocompr.robinlovelace.net/), free-access book by Robin Lovelace et al.
+
+* [`{sf}` package page](https://r-spatial.github.io/sf/)
+
+* [StackOverflow discussion](https://github.com/r-spatial/sf/issues/1050) and [code](https://gist.github.com/fzenoni/ef23faf6d1ada5e4a91c9ef23b0ba2c1) to plot a true globe
+
+* [“A `{ggplot2}` Tutorial for Beautiful Plotting in R”](https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/), my extensive "how to"-tutorial
+
+---
+
+## Appendix
+
+### Create Any Chart Type
+
+#### Candlestick Charts
+
+There is a package for that — but it's simple enough to do it manually!
+
+```{r candle-step-1}
+ggplot(filter(data, year == 2019, month > 9), aes(date, close)) +
+  geom_linerange(aes(ymin = low, ymax = high), size = 1)
+```
+
+```{r candle-step-2}
+ggplot(filter(data, year == 2019, month > 9), aes(date, close)) +
+  geom_linerange(aes(ymin = low, ymax = high), size = 1) +
+  geom_linerange(aes(ymin = open, ymax = close), size = 5)
+```
+
+```{r candle-color}
+ggplot(filter(data, year == 2019, month > 9), aes(date, close)) +
+  geom_linerange(aes(ymin = low, ymax = high, color = close > open), size = 1) +
+  geom_linerange(aes(ymin = open, ymax = close, color = close > open), size = 5)
+```
+
+```{r candle-scale-date}
+ggplot(filter(data, year == 2019, month > 9), aes(date, close)) +
+  geom_linerange(aes(ymin = low, ymax = high, color = close > open), size = 1) + 
+  geom_linerange(aes(ymin = open, ymax = close, color = close > open), size = 5) +
+  scale_x_date(date_labels = "%b %d, %Y")
+```
+
+
+
+### Statistical Transformations
+
+#### Draw Functions
+
+`stat_function()` makes it easy to add a function to a plot, either continuous or discrete:
+
+```{r stats-function}
+ggplot(tibble(x = c(-8, 8)), aes(x)) +
+  stat_function(fun = dnorm) +
+  stat_function(
+    fun = dcauchy,
+    color = "red",
+    n = 75
+  ) 
 ```
 
 ---
