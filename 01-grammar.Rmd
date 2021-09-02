@@ -333,11 +333,11 @@ data
 You could also load, for example, JSON or Excel files with the same function:
 
 ```{r data-rio-json}
-data_json <- rio::import(here::here("data", "crypto_cleaned.json"))
+#data_json <- rio::import(here::here("data", "crypto_cleaned.json"))
 
-data_json <- as_tibble(data_json) ## somehow `setclass` doesn't work with json
+#data_json <- as_tibble(data_json) ## somehow `setclass` doesn't work with json
 
-data_json
+#data_json
 ```
 
 ```{r data-rio-xlsx}
