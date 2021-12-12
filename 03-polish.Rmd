@@ -457,13 +457,15 @@ You can directly alter the appearance by adding `theme()` to a ggplot.
 
 
 ```{r element-rect-example}
-g +
-  theme(plot.background = element_rect(
+my_rect_element <- element_rect(
     color = "black",
     fill = "orange",
     size = 2,
     linetype = "dotted"
-  ))
+  )
+
+g +
+  theme(plot.background = my_rect_element, legend.background = my_rect_element)
 ```
 
 
@@ -488,9 +490,7 @@ g +
 
 
 ```{r element-text-example}
-g +
-  ggtitle("My New\nTitle") +
-  theme(plot.title = element_text(
+my_text_element <- element_text(
     #family = "Roboto", ## you need {systemfonts} for this
     face = "bold", ## plain, italic, bolditalic
     size = 24,
@@ -505,7 +505,11 @@ g +
       30, ## b (bottom)
       0   ## l (left)
     )
-  ))
+  )
+
+g +
+  ggtitle("My New\nTitle") +
+  theme(plot.title = my_text_element, legend.text = my_text_element)
 ```
 
 ---
