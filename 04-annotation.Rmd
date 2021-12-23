@@ -205,7 +205,7 @@ ggplot(data, aes(close, open)) +
     lineheight = .9 
   ) +
   annotate(
-    geom = "line",
+    geom = "segment",
     x = 250, y = 75,
     xend = 180, yend = 160
   )
