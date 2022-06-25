@@ -186,7 +186,7 @@ ggplot(data, aes(x = date, y = close, color = open, group = currency)) +
     direction = -1,
     end = .9,
     labels = scales::dollar_format(),
-    name = "Julian Day:"
+    name = "Open Price:"
   )
 ```
 
@@ -199,7 +199,7 @@ ggplot(data, aes(x = date, y = close, color = open, group = currency)) +
     end = .9,
     breaks = seq(50, 300, by = 100),
     labels = scales::dollar_format(), 
-    name = "Julian Day:"
+    name = "Open Price:"
   )
 ```
 

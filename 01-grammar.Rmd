@@ -81,7 +81,7 @@ I have already prepared the data. If you want to know how, you can have a look [
 
 ### Import the Data
 
-Using the `read_csv()` function form the `{readr}` package, we can read the data directly from the web:
+Using the `read_csv()` function from the `{readr}` package, we can read the data directly from the web:
 
 ```{r data-readr}
 url <- "https://raw.githubusercontent.com/z3tt/hands-on-ggplot2/main/data/crypto_cleaned.csv"
@@ -263,9 +263,9 @@ ggsave(filename = "my_ggplot.png",
 
 * [{ggplot2} reference](https://ggplot2.tidyverse.org/reference/)
 
-* [{ggplot2} cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/data-visualization-2.1.pdf)
+* [{ggplot2} cheatsheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/data-visualization.pdf)
 
-* [“R for Data Science”](https://4ds.had.co.nz), free–access book by Hadley Wickham
+* [“R for Data Science”](https://r4ds.had.co.nz/), free–access book by Hadley Wickham
 
 * [“Data Visualization: A Practical Introduction”](https://socviz.co), free–access book  by Kieran Healy
 
